@@ -6,12 +6,12 @@
 #include "stdio.h"
 
 int		max_fd, id = 0, arr_id[5000];
-char	*arr_str[5000], buff_send[32], buff_read[1001];
 fd_set	actual_set, read_set, write_set;
+char	buff_send[32], buff_read[1001], *arr_str[5000];
 
 int	extract_message(char **buf, char **msg) {
 	char	*newbuf;
-	int		i;
+	int	i;
 
 	*msg = 0;
 	if (*buf == 0)
@@ -57,10 +57,10 @@ void	ft_exit_error(char *str) {
 	exit(1);
 }
 
-void	ft_send_message(int sender_fd, char *message) {
+void	ft_send_message(int sender_fd, char *msg) {
 	for (int receiver_fd = 3; receiver_fd <= max_fd; receiver_fd++) {
 		if (FD_ISSET(receiver_fd, &write_set) && receiver_fd != sender_fd) {
-			send(receiver_fd, message, strlen(message), 0);
+			send(receiver_fd, msg, strlen(msg), 0);
 		}
 	}
 }
@@ -74,24 +74,25 @@ void	ft_register_client(int connfd) {
 	ft_send_message(connfd, buff_send);
 }
 
-void	ft_disconnect(int fd) {
+void	ft_disconnect_client(int fd) {
 	sprintf(buff_send, "server: client %d just left\n", arr_id[fd]);
 	ft_send_message(fd, buff_send);
-	free(arr_str[fd]);
 	FD_CLR(fd, &actual_set);
+	free(arr_str[fd]);
 	close(fd);
 }
 
 void	ft_disconnect_or_send(int sockfd) {
-	char	*message;
+	char	*msg;
 
 	for (int fd = 3; fd <= max_fd; fd++) {
 		if (FD_ISSET(fd, &read_set) && fd != sockfd) {
 
 			// check connection
 			size_t count = recv(fd, buff_read, 1000, 0);
+
 			if (count <= 0) {
-				ft_disconnect(fd);
+				ft_disconnect_client(fd);
 				break;
 			}
 			buff_read[count] = '\0';
@@ -99,20 +100,20 @@ void	ft_disconnect_or_send(int sockfd) {
 
 			// message = arr_str[fd] before the first \n
 			// arr_str[fd] = arr_str[fd] after the first \n
-			while (extract_message(&arr_str[fd], &message)) {
+			while (extract_message(&arr_str[fd], &msg)) {
 				sprintf(buff_send, "client: %d: ", arr_id[fd]);
 				ft_send_message(fd, buff_send);
-				ft_send_message(fd, message);
-				free(message);
+				ft_send_message(fd, msg);
+				free(msg);
 			}
           }
 	}
 }
 
 int main(int argc, char **argv) {
-	int			sockfd, connfd;
+	int	sockfd, connfd;
 	socklen_t	len;
-	struct		sockaddr_in servaddr, cli;
+	struct	sockaddr_in servaddr, cli;
 
 	if (argc != 2) {
 		ft_exit_error("Wrong number of arguments\n");
@@ -154,8 +155,7 @@ int main(int argc, char **argv) {
 		}
 
 		// connect new client
-		if (FD_ISSET(sockfd, &read_set))
-		{
+		if (FD_ISSET(sockfd, &read_set)) {
 
 			// wait and extract new connection
 			connfd = accept(sockfd, (struct sockaddr *) &cli, &len);
