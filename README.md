@@ -1,5 +1,6 @@
 # ✅ Exam_Rank-06
 ### The aim of the project:
+To create a simple server where client can connect and exchange messages.
 ### Run:
 Server:
 ```
@@ -32,3 +33,6 @@ client: 0: Hello, Guys!
 server: client 0 just left
 server: client 1 just left
 ```
+### Useful links:
+- [Subjects](https://github.com/markveligod/examrank-02-03-04-05-06/tree/master/examRank06/subjects/mini_serv)
+- [Подготовка к Exam Rank 06 (Финальный экзамен в Школе 21)](https://www.youtube.com/watch?v=8yGea5tK6oQ)
