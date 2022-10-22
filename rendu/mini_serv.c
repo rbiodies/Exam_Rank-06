@@ -7,7 +7,7 @@
 
 int		max_fd, id = 0, arr_id[5000];
 fd_set	actual_set, read_set, write_set;
-char	buff_send[32], buff_read[1001], *arr_str[5000];
+char	buff_send[42], buff_read[1001], *arr_str[65536];
 
 int	extract_message(char **buf, char **msg) {
 	char	*newbuf;
@@ -89,7 +89,7 @@ void	ft_disconnect_or_send(int sockfd) {
 		if (FD_ISSET(fd, &read_set) && fd != sockfd) {
 
 			// check connection
-			size_t count = recv(fd, buff_read, 1000, 0);
+			int count = recv(fd, buff_read, 1000, 0);
 
 			if (count <= 0) {
 				ft_disconnect_client(fd);
@@ -106,7 +106,7 @@ void	ft_disconnect_or_send(int sockfd) {
 				ft_send_message(fd, msg);
 				free(msg);
 			}
-          }
+		}
 	}
 }
 
