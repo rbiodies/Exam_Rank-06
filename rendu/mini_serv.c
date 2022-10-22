@@ -5,52 +5,9 @@
 #include "stdlib.h"
 #include "stdio.h"
 
-int		max_fd, id = 0, arr_id[5000];
+int		max_fd = 0, id = 0, arr_id[1024];
 fd_set	actual_set, read_set, write_set;
-char	buff_send[42], buff_read[1001], *arr_str[65536];
-
-int	extract_message(char **buf, char **msg) {
-	char	*newbuf;
-	int	i;
-
-	*msg = 0;
-	if (*buf == 0)
-		return (0);
-	i = 0;
-	while ((*buf)[i]) {
-		if ((*buf)[i] == '\n') {
-			newbuf = calloc(1, sizeof(*newbuf) * (strlen(*buf + i + 1) + 1));
-			if (newbuf == 0)
-				return (-1);
-			strcpy(newbuf, *buf + i + 1);
-			*msg = *buf;
-			(*msg)[i + 1] = 0;
-			*buf = newbuf;
-			return (1);
-		}
-		i++;
-	}
-	return (0);
-}
-
-char	*str_join(char *buf, char *add) {
-    char	*newbuf;
-	int		len;
-
-	if (buf == 0)
-		len = 0;
-	else
-		len = strlen(buf);
-	newbuf = malloc(sizeof(*newbuf) * (len + strlen(add) + 1));
-	if (newbuf == 0)
-		return (0);
-	newbuf[0] = 0;
-	if (buf != 0)
-		strcat(newbuf, buf);
-	free(buf);
-	strcat(newbuf, add);
-	return (newbuf);
-}
+char	buff_send[65536 * 2], buff_read[65536 * 2], arr_str[1024][1024];
 
 void	ft_exit_error(char *str) {
 	write(2, str, strlen(str));
@@ -68,7 +25,6 @@ void	ft_send_message(int sender_fd, char *msg) {
 void	ft_register_client(int connfd) {
 	max_fd = connfd > max_fd ? connfd : max_fd;
 	arr_id[connfd] = id++;
-	arr_str[connfd] = NULL;
 	FD_SET(connfd, &actual_set);
 	sprintf(buff_send, "server: client %d just arrived\n", arr_id[connfd]);
 	ft_send_message(connfd, buff_send);
@@ -78,34 +34,17 @@ void	ft_disconnect_client(int fd) {
 	sprintf(buff_send, "server: client %d just left\n", arr_id[fd]);
 	ft_send_message(fd, buff_send);
 	FD_CLR(fd, &actual_set);
-	free(arr_str[fd]);
 	close(fd);
 }
 
-void	ft_disconnect_or_send(int sockfd) {
-	char	*msg;
-
-	for (int fd = 3; fd <= max_fd; fd++) {
-		if (FD_ISSET(fd, &read_set) && fd != sockfd) {
-
-			// check connection
-			int count = recv(fd, buff_read, 1000, 0);
-
-			if (count <= 0) {
-				ft_disconnect_client(fd);
-				break;
-			}
-			buff_read[count] = '\0';
-			arr_str[fd] = str_join(arr_str[fd], buff_read);
-
-			// message = arr_str[fd] before the first \n
-			// arr_str[fd] = arr_str[fd] after the first \n
-			while (extract_message(&arr_str[fd], &msg)) {
-				sprintf(buff_send, "client: %d: ", arr_id[fd]);
-				ft_send_message(fd, buff_send);
-				ft_send_message(fd, msg);
-				free(msg);
-			}
+void	ft_send_big_message(int count, int fd) {
+	for (int i = 0, j = 0; i < count; i++, j++) {
+		arr_str[fd][j] = buff_read[i];
+		if (arr_str[fd][j] == '\n') {
+			arr_str[fd][j] = '\0';
+			sprintf(buff_send, "client: %d: %s\n", arr_id[fd], arr_str[fd]);
+			ft_send_message(fd, buff_send);
+			j = -1;
 		}
 	}
 }
@@ -153,18 +92,34 @@ int main(int argc, char **argv) {
 		if (select(max_fd + 1, &read_set, &write_set, NULL, NULL) < 0) {
 			continue ;
 		}
+		for (int fd = 3; fd <= max_fd; fd++) {
+			if (FD_ISSET(fd, &read_set)) {
 
-		// connect new client
-		if (FD_ISSET(sockfd, &read_set)) {
+				// connect new client
+				if (fd == sockfd) {
 
-			// wait and extract new connection
-			connfd = accept(sockfd, (struct sockaddr *) &cli, &len);
-			if (connfd < 0) {
-				ft_exit_error("Fatal error\n");
+					// wait and extract new connection
+					connfd = accept(sockfd, (struct sockaddr *) &cli, &len);
+					if (connfd < 0) {
+						continue;
+					}
+					ft_register_client(connfd);
+					break;
+
+					// disconnect or send
+				} else {
+
+					// check connection
+					int count = recv(fd, buff_read, 65536 * 2, 0);
+
+					if (count <= 0) {
+						ft_disconnect_client(fd);
+						break;
+					}
+					ft_send_big_message(count, fd);
+					break;
+				}
 			}
-			ft_register_client(connfd);
-			continue ;
 		}
-		ft_disconnect_or_send(sockfd);
 	}
 }
