@@ -17,19 +17,19 @@ Client 0:
 $>nc 127.0.0.1 6000
 server: client 1 just arrived
 server: client 2 just arrived
-Hello, Guys!
+Goodbye!
 ```
 Client 1:
 ```
 $>nc 127.0.0.1 6000
 server: client 2 just arrived
-client: 0: Hello, Guys!
+client: 0: Goodbye!
 server: client 0 just left
 ```
 Client 2:
 ```
 $>nc 127.0.0.1 6000
-client: 0: Hello, Guys!
+client: 0: Goodbye!
 server: client 0 just left
 server: client 1 just left
 ```
