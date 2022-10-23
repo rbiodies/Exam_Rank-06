@@ -102,9 +102,10 @@ int main(int argc, char **argv) {
 					connfd = accept(sockfd, (struct sockaddr *) &cli, &len);
 					if (connfd < 0) {
 						continue;
+					} else {
+						ft_register_client(connfd);
+						break;
 					}
-					ft_register_client(connfd);
-					break;
 
 					// disconnect or send
 				} else {
@@ -115,9 +116,10 @@ int main(int argc, char **argv) {
 					if (count <= 0) {
 						ft_disconnect_client(fd);
 						break;
+					} else {
+						ft_send_big_message(count, fd);
+						break;
 					}
-					ft_send_big_message(count, fd);
-					break;
 				}
 			}
 		}
