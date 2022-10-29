@@ -106,8 +106,6 @@ int main(int argc, char **argv) {
 						ft_register_client(connfd);
 						break;
 					}
-
-					// disconnect or send
 				} else {
 
 					// check connection
