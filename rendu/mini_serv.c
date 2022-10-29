@@ -52,7 +52,7 @@ void	ft_send_big_message(int count, int fd) {
 int main(int argc, char **argv) {
 	int	sockfd, connfd;
 	socklen_t	len;
-	struct	sockaddr_in servaddr, cli;
+	struct	sockaddr_in servaddr;
 
 	if (argc != 2) {
 		ft_exit_error("Wrong number of arguments\n");
@@ -79,7 +79,6 @@ int main(int argc, char **argv) {
 	if (listen(sockfd, 10) != 0) {
 		ft_exit_error("Fatal error\n");
 	}
-	len = sizeof(cli);
 	max_fd = sockfd;
 	FD_ZERO(&actual_set);
 	FD_SET(sockfd, &actual_set);
@@ -99,7 +98,7 @@ int main(int argc, char **argv) {
 				if (fd == sockfd) {
 
 					// wait and extract new connection
-					connfd = accept(sockfd, (struct sockaddr *) &cli, &len);
+					connfd = accept(sockfd, (struct sockaddr *) &servaddr, &len);
 					if (connfd < 0) {
 						continue;
 					} else {
