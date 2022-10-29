@@ -7,17 +7,17 @@
 
 int		max_fd = 0, id = 0, arr_id[1024];
 fd_set	actual_set, read_set, write_set;
-char	buff_send[65536 * 2], buff_read[65536 * 2], arr_str[1024][1024];
+char	buff_send[65536 * 2], buff_read[65536 * 2], arr_str[1024];
 
 void	ft_exit_error(char *str) {
 	write(2, str, strlen(str));
 	exit(1);
 }
 
-void	ft_send_message(int sender_fd, char *msg) {
-	for (int receiver_fd = 3; receiver_fd <= max_fd; receiver_fd++) {
-		if (FD_ISSET(receiver_fd, &write_set) && receiver_fd != sender_fd) {
-			send(receiver_fd, msg, strlen(msg), 0);
+void	ft_send_message(int sendfd, char *msg) {
+	for (int recfd = 3; recfd <= max_fd; recfd++) {
+		if (FD_ISSET(recfd, &write_set) && recfd != sendfd) {
+			send(recfd, msg, strlen(msg), 0);
 		}
 	}
 }
@@ -39,10 +39,10 @@ void	ft_disconnect_client(int fd) {
 
 void	ft_send_big_message(int count, int fd) {
 	for (int i = 0, j = 0; i < count; i++, j++) {
-		arr_str[fd][j] = buff_read[i];
-		if (arr_str[fd][j] == '\n') {
-			arr_str[fd][j] = '\0';
-			sprintf(buff_send, "client: %d: %s\n", arr_id[fd], arr_str[fd]);
+		arr_str[j] = buff_read[i];
+		if (arr_str[j] == '\n') {
+			arr_str[j] = '\0';
+			sprintf(buff_send, "client: %d: %s\n", arr_id[fd], arr_str);
 			ft_send_message(fd, buff_send);
 			j = -1;
 		}
