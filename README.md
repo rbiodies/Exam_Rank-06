@@ -43,3 +43,4 @@ server: client 1 just left
 ### Useful links:
 - [Subjects](https://github.com/markveligod/examrank-02-03-04-05-06/tree/master/examRank06/subjects/mini_serv)
 - [Подготовка к Exam Rank 06 (Финальный экзамен в Школе 21)](https://www.youtube.com/watch?v=8yGea5tK6oQ)
+- [mini_serv.c](https://github.com/Nike2406/ft_exams/tree/main/exam06)
